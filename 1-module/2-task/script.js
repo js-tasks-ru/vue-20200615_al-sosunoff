@@ -1,4 +1,5 @@
 import Vue from '/vendor/vue.esm.browser.js';
+import fetchJson from '/utils/fetch-json.js';
 
 /** URL адрес API */
 const API_URL = 'https://course-vue.javascript.ru/api';
@@ -48,19 +49,44 @@ export const app = new Vue({
   el: '#app',
 
   data: {
-    //
+    meetup: {},
+    imgBackground: '',
   },
 
-  mounted() {
-    // Требуется получить данные митапа с API
+  async mounted() {
+    this.meetup = await fetchJson(`${API_URL}/meetups/${MEETUP_ID}`);
+    this.imgBackground = `url(${getMeetupCoverLink(this.meetup)})`;
   },
 
   computed: {
-    //
+    visibleDate() {
+      return this.formatDate(this.meetup.date, {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+      });
+    },
+    hideDate() {
+      return this.formatDate(this.meetup.date, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+    },
   },
 
   methods: {
-    // Получение данных с API предпочтительнее оформить отдельным методом,
-    // а не писать прямо в mounted()
+    getTypeIcon(type) {
+      return agendaItemIcons[type];
+    },
+    getTitle(title, type) {
+      return title || agendaItemTitles[type];
+    },
+    isAgenda() {
+      return Boolean(this.meetup.agenda && this.meetup.agenda.length);
+    },
+    formatDate(timestamp, options) {
+      return new Intl.DateTimeFormat('ru-RU', options).format(timestamp);
+    },
   },
 });
