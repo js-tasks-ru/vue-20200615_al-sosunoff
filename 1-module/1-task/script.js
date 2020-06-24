@@ -1,6 +1,6 @@
 import Vue from '/vendor/vue.esm.browser.js';
 
-const app = new Vue({
+new Vue({
   el: '#app',
   data: {
     count: 0,
