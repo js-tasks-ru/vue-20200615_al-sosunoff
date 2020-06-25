@@ -70,7 +70,7 @@ export const app = new Vue({
           ...this.meetupLocaly,
           agenda: this.meetupLocaly.agenda.map((item) => ({
             ...item,
-            type: agendaItemIcons[item.type],
+            typeIcon: agendaItemIcons[item.type],
           })),
         };
       },
