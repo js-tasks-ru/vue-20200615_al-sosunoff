@@ -13,7 +13,7 @@ const MEETUP_ID = 6;
  * @return {string} - ссылка на изображение митапа
  */
 function getMeetupCoverLink(meetup) {
-  return `${API_URL}/images/${meetup.imageId}`;
+  return meetup.imageId ? `url(${API_URL}/images/${meetup.imageId})` : '';
 }
 
 /**
@@ -49,16 +49,35 @@ export const app = new Vue({
   el: '#app',
 
   data: {
-    meetup: {},
-    imgBackground: '',
+    meetupLocaly: {},
   },
 
   async mounted() {
     this.meetup = await fetchJson(`${API_URL}/meetups/${MEETUP_ID}`);
-    this.imgBackground = `url(${getMeetupCoverLink(this.meetup)})`;
   },
 
   computed: {
+    meetup: {
+      set(payload) {
+        this.meetupLocaly = payload;
+      },
+      get() {
+        if (!this.meetupLocaly.agenda) {
+          return this.meetupLocaly;
+        }
+
+        return {
+          ...this.meetupLocaly,
+          agenda: this.meetupLocaly.agenda.map((item) => ({
+            ...item,
+            type: agendaItemIcons[item.type],
+          })),
+        };
+      },
+    },
+    imgBackground() {
+      return getMeetupCoverLink(this.meetup);
+    },
     visibleDate() {
       return this.formatDate(this.meetup.date, {
         year: 'numeric',
@@ -73,6 +92,9 @@ export const app = new Vue({
         day: '2-digit',
       });
     },
+    isAgenda() {
+      return Boolean(this.meetup.agenda && this.meetup.agenda.length);
+    },
   },
 
   methods: {
@@ -81,9 +103,6 @@ export const app = new Vue({
     },
     getTitle(title, type) {
       return title || agendaItemTitles[type];
-    },
-    isAgenda() {
-      return Boolean(this.meetup.agenda && this.meetup.agenda.length);
     },
     formatDate(timestamp, options) {
       return new Intl.DateTimeFormat('ru-RU', options).format(timestamp);
