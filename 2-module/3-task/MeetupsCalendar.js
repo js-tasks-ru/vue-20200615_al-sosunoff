@@ -3,6 +3,7 @@ import {
   nextMonth,
   getMonthDayCount,
   getFirsDayOfWeekByMonth,
+  getDateWithoutTime,
 } from './date.js';
 
 export const MeetupsCalendar = {
@@ -23,7 +24,13 @@ export const MeetupsCalendar = {
           <div
             v-for="(item, inx) of prevMonthDay"
             :key="'prev_' + inx"
-            class="rangepicker__cell rangepicker__cell_inactive">{{ item.day }}</div>
+            class="rangepicker__cell rangepicker__cell_inactive">
+              {{ item.day }}
+              <a
+                class="rangepicker__event"
+                v-for="(meetup, indexMeetups) of meetupsOfDay[getDateWithoutTime(item.date).getTime()]"
+                :key="'meetup_prev_' + indexMeetups">{{ meetup.title }}</a>
+            </div>
 
           <div
             v-for="(item, inx) of currentMonthDay"
@@ -32,14 +39,20 @@ export const MeetupsCalendar = {
               {{ item.day }}
               <a
                 class="rangepicker__event"
-                v-for="(meetup, indexMeetups) of item.meetups"
+                v-for="(meetup, indexMeetups) of meetupsOfDay[getDateWithoutTime(item.date).getTime()]"
                 :key="'meetup_' + indexMeetups">{{ meetup.title }}</a>
           </div>
 
           <div
             v-for="(item, inx) of nextMonthDay"
             :key="'next_' + inx"
-            class="rangepicker__cell rangepicker__cell_inactive">{{ item.day }}</div>
+            class="rangepicker__cell rangepicker__cell_inactive">
+              {{ item.day }}
+              <a
+                class="rangepicker__event"
+                v-for="(meetup, indexMeetups) of meetupsOfDay[getDateWithoutTime(item.date).getTime()]"
+                :key="'meetup_next_' + indexMeetups">{{ meetup.title }}</a>
+            </div>
 
         </div>
       </div>
@@ -59,26 +72,13 @@ export const MeetupsCalendar = {
   },
 
   methods: {
+    getDateWithoutTime(date) {
+      return getDateWithoutTime(date);
+    },
     getDayWithMeetup(day, date) {
-      const dateWithoutTime = new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        day,
-      );
-
       return {
         day,
-        meetups: this.meetups
-          .map((meetup) => ({
-            meetup,
-            timestamp: new Date(
-              new Date(meetup.date).getFullYear(),
-              new Date(meetup.date).getMonth(),
-              new Date(meetup.date).getDate(),
-            ).getTime(),
-          }))
-          .filter((meetup) => meetup.timestamp === dateWithoutTime.getTime())
-          .map(({ meetup }) => meetup),
+        date: new Date(date.getFullYear(), date.getMonth(), day),
       };
     },
     onPrev() {
@@ -90,6 +90,21 @@ export const MeetupsCalendar = {
   },
 
   computed: {
+    meetupsOfDay() {
+      const meetups = {};
+
+      this.meetups.forEach((meetup) => {
+        const dateWithoutTime = this.getDateWithoutTime(meetup.date).getTime();
+
+        if (dateWithoutTime in meetups) {
+          meetups[dateWithoutTime].push(meetup);
+        } else {
+          meetups[dateWithoutTime] = [meetup];
+        }
+      });
+
+      return meetups;
+    },
     dateLineDate() {
       return `${this.currentDate.toLocaleDateString(navigator.language, {
         month: 'long',
