@@ -1,42 +1,135 @@
-/*
-  Полезные функции по работе с датой можно описать вне Vue компонента
- */
+import {
+  prevMonth,
+  nextMonth,
+  getMonthDayCount,
+  getFirsDayOfWeekByMonth,
+} from './date.js';
 
 export const MeetupsCalendar = {
   name: 'MeetupsCalendar',
 
-  template: `<div class="rangepicker">
-    <div class="rangepicker__calendar">
-      <div class="rangepicker__month-indicator">
-        <div class="rangepicker__selector-controls">
-          <button class="rangepicker__selector-control-left"></button>
-          <div>Июнь 2020</div>
-          <button class="rangepicker__selector-control-right"></button>
+  template: `
+    <div class="rangepicker">
+      <div class="rangepicker__calendar">
+        <div class="rangepicker__month-indicator">
+          <div class="rangepicker__selector-controls">
+            <button class="rangepicker__selector-control-left" @click="onPrev"></button>
+            <div>{{ dateLineDate }}</div>
+            <button class="rangepicker__selector-control-right" @click="onNext"></button>
+          </div>
+        </div>
+
+        <div class="rangepicker__date-grid">
+          <div
+            v-for="(item, inx) of prevMonthDay"
+            :key="'prev_' + inx"
+            class="rangepicker__cell rangepicker__cell_inactive">{{ item.day }}</div>
+
+          <div
+            v-for="(item, inx) of currentMonthDay"
+            :key="'current_' + inx"
+            class="rangepicker__cell">
+              {{ item.day }}
+              <a
+                class="rangepicker__event"
+                v-for="(meetup, indexMeetups) of item.meetups"
+                :key="'meetup_' + indexMeetups">{{ meetup.title }}</a>
+          </div>
+
+          <div
+            v-for="(item, inx) of nextMonthDay"
+            :key="'next_' + inx"
+            class="rangepicker__cell rangepicker__cell_inactive">{{ item.day }}</div>
+
         </div>
       </div>
-      <div class="rangepicker__date-grid">
-        <div class="rangepicker__cell rangepicker__cell_inactive">28</div>
-        <div class="rangepicker__cell rangepicker__cell_inactive">29</div>
-        <div class="rangepicker__cell rangepicker__cell_inactive">30</div>
-        <div class="rangepicker__cell rangepicker__cell_inactive">31</div>
-        <div class="rangepicker__cell">
-          1
-          <a class="rangepicker__event">Митап</a>
-          <a class="rangepicker__event">Митап</a>
-        </div>
-        <div class="rangepicker__cell">2</div>
-        <div class="rangepicker__cell">3</div>
-      </div>
-    </div>
-  </div>`,
+    </div>`,
 
-  // Пропсы
+  data() {
+    return {
+      currentDate: new Date(),
+    };
+  },
 
-  // В качестве локального состояния требуется хранить что-то,
-  // что позволит определить текущий показывающийся месяц.
-  // Изначально должен показываться текущий месяц
+  props: {
+    meetups: {
+      type: Array,
+      required: true,
+    },
+  },
 
-  // Вычислимые свойства помогут как с получением списка дней, так и с выводом информации
+  methods: {
+    getDayWithMeetup(day, date) {
+      const dateWithoutTime = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        day,
+      );
 
-  // Методы понадобятся для переключения между месяцами
+      return {
+        day,
+        meetups: this.meetups
+          .map((meetup) => ({
+            meetup,
+            timestamp: new Date(
+              new Date(meetup.date).getFullYear(),
+              new Date(meetup.date).getMonth(),
+              new Date(meetup.date).getDate(),
+            ).getTime(),
+          }))
+          .filter((meetup) => meetup.timestamp === dateWithoutTime.getTime())
+          .map(({ meetup }) => meetup),
+      };
+    },
+    onPrev() {
+      this.currentDate = prevMonth(this.currentDate);
+    },
+    onNext() {
+      this.currentDate = nextMonth(this.currentDate);
+    },
+  },
+
+  computed: {
+    dateLineDate() {
+      return `${this.currentDate.toLocaleDateString(navigator.language, {
+        month: 'long',
+      })} ${this.currentDate.getFullYear()}`;
+    },
+    prevMonthDay() {
+      const countDay = getMonthDayCount(prevMonth(this.currentDate));
+      let startIndex = countDay - getFirsDayOfWeekByMonth(this.currentDate) + 1;
+
+      const arr = [];
+
+      while (startIndex < countDay) {
+        arr.push(
+          this.getDayWithMeetup(++startIndex, prevMonth(this.currentDate)),
+        );
+      }
+
+      return arr;
+    },
+    currentMonthDay() {
+      return new Array(getMonthDayCount(this.currentDate))
+        .fill()
+        .map((e, index) => this.getDayWithMeetup(index + 1, this.currentDate));
+    },
+    nextMonthDay() {
+      let dayOfWeek = getFirsDayOfWeekByMonth(nextMonth(this.currentDate));
+      const arr = [];
+      let startIndex = 0;
+
+      if (dayOfWeek !== 1) {
+        while (startIndex <= 7 - dayOfWeek) {
+          arr.push(
+            this.getDayWithMeetup(++startIndex, nextMonth(this.currentDate)),
+          );
+        }
+      }
+
+      return arr;
+    },
+  },
+
+  components: {},
 };
