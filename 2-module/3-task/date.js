@@ -15,3 +15,10 @@ export const getFirsDayOfWeekByMonth = (date) => {
 
   return firsDayOfWeekByMonth == 0 ? 7 : firsDayOfWeekByMonth;
 };
+
+export const getDateWithoutTime = (date) =>
+  new Date(
+    new Date(date).getFullYear(),
+    new Date(date).getMonth(),
+    new Date(date).getDate(),
+  );
