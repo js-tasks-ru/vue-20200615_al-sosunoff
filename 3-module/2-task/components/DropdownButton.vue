@@ -13,8 +13,13 @@
       }"
       @click="onToggle"
     >
-      <app-icon v-if="Boolean(selectedIconItem)" :icon="selectedIconItem" />
-      <template v-if="Boolean(value)"> {{ title }} - {{ text }} </template>
+      <app-icon
+        v-if="Boolean(selectedElement && selectedElement.icon)"
+        :icon="selectedElement.icon"
+      />
+      <template v-if="Boolean(value)">
+        {{ title }} - {{ selectedElement.text }}
+      </template>
       <template v-else>
         {{ title }}
       </template>
@@ -57,7 +62,6 @@ export default {
   data() {
     return {
       isOpen: false,
-      selectedIconItem: '',
     };
   },
 
@@ -80,10 +84,6 @@ export default {
       this.isOpen = !this.isOpen;
     },
     onChange(item) {
-      if ('icon' in item) {
-        this.selectedIconItem = item.icon;
-      }
-
       this.$emit('change', item.value);
       this.onToggle();
     },
@@ -93,8 +93,8 @@ export default {
     isIcon() {
       return this.options.some(({ icon = false }) => icon);
     },
-    text() {
-      return this.options.find((e) => e.value === this.value).text;
+    selectedElement() {
+      return this.options.find((e) => e.value === this.value);
     },
   },
 
