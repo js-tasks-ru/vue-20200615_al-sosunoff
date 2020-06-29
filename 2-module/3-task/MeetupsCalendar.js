@@ -102,12 +102,14 @@ export const MeetupsCalendar = {
       let arr = [];
       // prev
       const countDay = getMonthDayCount(prevMonth(this.currentDate));
-      let startIndex = countDay - getFirsDayOfWeekByMonth(this.currentDate);
-      const countDayBalance = countDay - startIndex - 1;
+      let startIndex =
+        countDay - (getFirsDayOfWeekByMonth(this.currentDate) - 1);
+      const countDayBalance = countDay - startIndex;
+
       arr = [
         ...Array(countDayBalance)
           .fill()
-          .map((e, i) => i + countDayBalance + startIndex)
+          .map((e, i) => i + startIndex + 1)
           .map((e) =>
             this.getDayWithMeetup(
               e,
@@ -127,18 +129,20 @@ export const MeetupsCalendar = {
       ];
       // next
       let dayOfWeek = getFirsDayOfWeekByMonth(nextMonth(this.currentDate));
-      arr = [
-        ...arr,
-        ...Array(8 - dayOfWeek)
-          .fill()
-          .map((e, i) =>
-            this.getDayWithMeetup(
-              ++i,
-              nextMonth(this.currentDate),
-              'rangepicker__cell_inactive',
+      if (dayOfWeek !== 1) {
+        arr = [
+          ...arr,
+          ...Array(8 - dayOfWeek)
+            .fill()
+            .map((e, i) =>
+              this.getDayWithMeetup(
+                ++i,
+                nextMonth(this.currentDate),
+                'rangepicker__cell_inactive',
+              ),
             ),
-          ),
-      ];
+        ];
+      }
 
       return arr;
     },
