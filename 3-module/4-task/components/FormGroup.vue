@@ -1,13 +1,35 @@
 <template>
-  <div class="form-group">
-    <label class="form-label">Label</label>
-    <input />
+  <div
+    class="form-group"
+    :class="{
+      'form-group_inline': inline,
+    }"
+  >
+    <label class="form-label" v-if="canShowLabel">{{ label }}</label>
+    <slot>
+      <input />
+    </slot>
   </div>
 </template>
 
 <script>
 export default {
   name: 'FormGroup',
+
+  props: {
+    inline: {
+      type: Boolean,
+    },
+    label: {
+      type: String,
+    },
+  },
+
+  computed: {
+    canShowLabel() {
+      return Boolean(this.label);
+    },
+  },
 };
 </script>
 

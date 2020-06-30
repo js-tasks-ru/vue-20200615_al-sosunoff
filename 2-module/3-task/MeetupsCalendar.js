@@ -22,38 +22,16 @@ export const MeetupsCalendar = {
 
         <div class="rangepicker__date-grid">
           <div
-            v-for="(item, inx) of prevMonthDay"
-            :key="'prev_' + inx"
-            class="rangepicker__cell rangepicker__cell_inactive">
+            v-for="(item, inx) of monthDay"
+            :key="inx"
+            class="rangepicker__cell"
+            :class="[item.cls]">
               {{ item.day }}
               <a
                 class="rangepicker__event"
-                v-for="(meetup, indexMeetups) of meetupsOfDay[getDateWithoutTime(item.date).getTime()]"
+                v-for="(meetup, indexMeetups) of item.meetups"
                 :key="'meetup_prev_' + indexMeetups">{{ meetup.title }}</a>
-            </div>
-
-          <div
-            v-for="(item, inx) of currentMonthDay"
-            :key="'current_' + inx"
-            class="rangepicker__cell">
-              {{ item.day }}
-              <a
-                class="rangepicker__event"
-                v-for="(meetup, indexMeetups) of meetupsOfDay[getDateWithoutTime(item.date).getTime()]"
-                :key="'meetup_' + indexMeetups">{{ meetup.title }}</a>
           </div>
-
-          <div
-            v-for="(item, inx) of nextMonthDay"
-            :key="'next_' + inx"
-            class="rangepicker__cell rangepicker__cell_inactive">
-              {{ item.day }}
-              <a
-                class="rangepicker__event"
-                v-for="(meetup, indexMeetups) of meetupsOfDay[getDateWithoutTime(item.date).getTime()]"
-                :key="'meetup_next_' + indexMeetups">{{ meetup.title }}</a>
-            </div>
-
         </div>
       </div>
     </div>`,
@@ -72,13 +50,19 @@ export const MeetupsCalendar = {
   },
 
   methods: {
-    getDateWithoutTime(date) {
-      return getDateWithoutTime(date);
-    },
-    getDayWithMeetup(day, date) {
+    getDayWithMeetup(day, date, cls) {
+      const currentDayWithoutTime = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        day,
+      );
       return {
         day,
-        date: new Date(date.getFullYear(), date.getMonth(), day),
+        date: currentDayWithoutTime,
+        cls,
+        meetups: this.meetupsOfDay[
+          getDateWithoutTime(currentDayWithoutTime).getTime()
+        ],
       };
     },
     onPrev() {
@@ -89,12 +73,16 @@ export const MeetupsCalendar = {
     },
   },
 
+  mounted() {
+    this.monthDay;
+  },
+
   computed: {
     meetupsOfDay() {
       const meetups = {};
 
       this.meetups.forEach((meetup) => {
-        const dateWithoutTime = this.getDateWithoutTime(meetup.date).getTime();
+        const dateWithoutTime = getDateWithoutTime(meetup.date).getTime();
 
         if (dateWithoutTime in meetups) {
           meetups[dateWithoutTime].push(meetup);
@@ -110,36 +98,50 @@ export const MeetupsCalendar = {
         month: 'long',
       })} ${this.currentDate.getFullYear()}`;
     },
-    prevMonthDay() {
+    monthDay() {
+      let arr = [];
+      // prev
       const countDay = getMonthDayCount(prevMonth(this.currentDate));
-      let startIndex = countDay - getFirsDayOfWeekByMonth(this.currentDate) + 1;
+      let startIndex =
+        countDay - (getFirsDayOfWeekByMonth(this.currentDate) - 1);
+      const countDayBalance = countDay - startIndex;
 
-      const arr = [];
-
-      while (startIndex < countDay) {
-        arr.push(
-          this.getDayWithMeetup(++startIndex, prevMonth(this.currentDate)),
-        );
-      }
-
-      return arr;
-    },
-    currentMonthDay() {
-      return new Array(getMonthDayCount(this.currentDate))
-        .fill()
-        .map((e, index) => this.getDayWithMeetup(index + 1, this.currentDate));
-    },
-    nextMonthDay() {
+      arr = [
+        ...Array(countDayBalance)
+          .fill()
+          .map((e, i) => i + startIndex + 1)
+          .map((e) =>
+            this.getDayWithMeetup(
+              e,
+              prevMonth(this.currentDate),
+              'rangepicker__cell_inactive',
+            ),
+          ),
+      ];
+      // current
+      arr = [
+        ...arr,
+        ...new Array(getMonthDayCount(this.currentDate))
+          .fill()
+          .map((e, index) =>
+            this.getDayWithMeetup(index + 1, this.currentDate),
+          ),
+      ];
+      // next
       let dayOfWeek = getFirsDayOfWeekByMonth(nextMonth(this.currentDate));
-      const arr = [];
-      let startIndex = 0;
-
       if (dayOfWeek !== 1) {
-        while (startIndex <= 7 - dayOfWeek) {
-          arr.push(
-            this.getDayWithMeetup(++startIndex, nextMonth(this.currentDate)),
-          );
-        }
+        arr = [
+          ...arr,
+          ...Array(8 - dayOfWeek)
+            .fill()
+            .map((e, i) =>
+              this.getDayWithMeetup(
+                ++i,
+                nextMonth(this.currentDate),
+                'rangepicker__cell_inactive',
+              ),
+            ),
+        ];
       }
 
       return arr;
