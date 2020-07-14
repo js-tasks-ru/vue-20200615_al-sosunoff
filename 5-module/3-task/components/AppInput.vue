@@ -1,18 +1,60 @@
-<template>
-  <div
-    class="input-group input-group_icon input-group_icon-left input-group_icon-right"
-  >
-    <img class="icon" />
-
-    <input class="form-control form-control_rounded form-control_sm" />
-
-    <img class="icon" />
-  </div>
-</template>
-
 <script>
 export default {
   name: 'AppInput',
+  inheritAttrs: false,
+  model: {
+    event: 'input',
+    props: 'value',
+  },
+  props: {
+    value: {
+      type: String,
+    },
+    small: Boolean,
+    rounded: Boolean,
+    multiline: Boolean,
+  },
+  render(h) {
+    const isLeftIcon = Boolean(this.$slots['left-icon']);
+    const isRightIcon = Boolean(this.$slots['right-icon']);
+    return h(
+      'div',
+      {
+        class: {
+          'input-group': true,
+          'input-group_icon': isLeftIcon || isRightIcon,
+          'input-group_icon-left': isLeftIcon,
+          'input-group_icon-right': isRightIcon,
+        },
+      },
+      [
+        this.$slots['left-icon'],
+        h(this.multiline ? 'textarea' : 'input', {
+          class: {
+            'form-control': true,
+            'form-control_sm': this.small,
+            'form-control_rounded': this.rounded,
+          },
+          attrs: {
+            ...this.$attrs,
+          },
+          domProps: {
+            value: this.value,
+          },
+          on: {
+            ...this.$listeners,
+            input: ({ target }) => {
+              this.$emit('input', target.value);
+            },
+            change: ({ target }) => {
+              this.$emit('change', target.value);
+            },
+          },
+        }),
+        this.$slots['right-icon'],
+      ],
+    );
+  },
 };
 </script>
 
