@@ -19,7 +19,7 @@ export default {
   components: { CounterButton },
   data() {
     return {
-      count1: 15,
+      count1: 1,
       count2: undefined,
       count3: 0,
     };
