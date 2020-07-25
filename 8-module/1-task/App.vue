@@ -3,9 +3,15 @@
     <p>
       <app-checkbox v-model="checked"> Checked ({{ checked }})</app-checkbox>
     </p>
-    <p><app-checkbox v-model="checkedArray" value="A">Check A</app-checkbox></p>
+    <p>
+      <app-checkbox v-model="checkedArray" value="A">Check A</app-checkbox>
+    </p>
     <p><app-checkbox v-model="checkedArray" value="B">Check B</app-checkbox></p>
-    <p><app-checkbox v-model="checkedArray" value="C">Check C</app-checkbox></p>
+    <p>
+      <app-checkbox v-model="checkedArray" value="C">Check C</app-checkbox>
+    </p>
+    <p><input v-model="checkedArray" value="A" type="checkbox" /></p>
+    <p><input v-model="checkedArray" value="C" type="checkbox" /></p>
     <p>Checked: {{ checkedArray }}</p>
     <p>
       <button @click="checked = !checked">
@@ -35,10 +41,12 @@ export default {
 
   data() {
     return {
-      checked: false,
-      checkedArray: [],
+      checked: true,
+      checkedArray: ['A'],
     };
   },
+
+  methods: {},
 };
 </script>
 

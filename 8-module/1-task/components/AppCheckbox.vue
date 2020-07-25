@@ -1,6 +1,13 @@
 <template>
   <label class="checkbox">
-    <input type="checkbox" />
+    <input
+      type="checkbox"
+      v-bind="$attrs"
+      v-on="listeners"
+      v-model="model"
+      :value="value"
+      :checked="checked"
+    />
     <slot />
     <span></span>
   </label>
@@ -9,7 +16,80 @@
 <script>
 export default {
   name: 'AppCheckbox',
+  inheritAttrs: false,
+  model: {
+    event: 'change',
+    prop: 'checked',
+  },
+  props: {
+    value: [Boolean, String],
+    checked: [Boolean, Array],
+  },
+  mounted() {},
+  computed: {
+    listeners() {
+      const listeners = { ...this.$listeners };
+      delete listeners.change;
+      return listeners;
+    },
+    model: {
+      get: function () {
+        return this.checked;
+      },
+      set: function (value) {
+        this.$emit('change', value);
+      },
+    },
+  },
 };
+/* render(h) {
+    const isArrayChecked = Array.isArray(this.$attrs.checked);
+
+    let checked = isArrayChecked
+      ? this.$attrs.checked.includes(this.$attrs.value)
+      : this.$attrs.value;
+
+    return h(
+      'label',
+      {
+        class: ['checkbox'],
+      },
+      [
+        h('input', {
+          attrs: {
+            ...this.$attrs,
+            type: 'checkbox',
+          },
+          on: {
+            ...this.$listeners,
+            change: ($event) => {
+              if (isArrayChecked) {
+                if ($event.target.checked) {
+                  this.$emit('change', [
+                    ...this.$attrs.checked,
+                    this.$attrs.value,
+                  ]);
+                } else {
+                  this.$emit('change', [
+                    ...this.$attrs.checked.filter(
+                      (e) => e !== this.$attrs.value,
+                    ),
+                  ]);
+                }
+              } else {
+                this.$emit('change', $event.target.checked);
+              }
+            },
+          },
+          domProps: {
+            checked,
+          },
+        }),
+        this.$slots.default,
+        h('span'),
+      ],
+    );
+  }, */
 </script>
 
 <style scoped>
