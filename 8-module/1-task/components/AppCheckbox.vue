@@ -34,29 +34,10 @@ export default {
     },
     model: {
       get: function () {
-        /* const isArrayChecked = Array.isArray(this.checked); */
-
-        /* let checked = isArrayChecked
-          ? this.checked.includes(this.value)
-          : this.checked; */
-
-        // return checked;
         return this.checked;
       },
       set: function (value) {
         this.$emit('change', value);
-        /* const isArrayChecked = Array.isArray(this.checked);
-        if (isArrayChecked) {
-          if (value) {
-            this.$emit('change', [...this.checked, this.value]);
-          } else {
-            this.$emit('change', [
-              ...this.checked.filter((e) => e !== this.value),
-            ]);
-          }
-        } else {
-          this.$emit('change', value);
-        } */
       },
     },
   },
