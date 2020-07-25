@@ -34,16 +34,18 @@ export default {
     },
     model: {
       get: function () {
-        const isArrayChecked = Array.isArray(this.checked);
+        /* const isArrayChecked = Array.isArray(this.checked); */
 
-        let checked = isArrayChecked
+        /* let checked = isArrayChecked
           ? this.checked.includes(this.value)
-          : this.checked;
+          : this.checked; */
 
-        return checked;
+        // return checked;
+        return this.checked;
       },
       set: function (value) {
-        const isArrayChecked = Array.isArray(this.checked);
+        this.$emit('change', value);
+        /* const isArrayChecked = Array.isArray(this.checked);
         if (isArrayChecked) {
           if (value) {
             this.$emit('change', [...this.checked, this.value]);
@@ -54,7 +56,7 @@ export default {
           }
         } else {
           this.$emit('change', value);
-        }
+        } */
       },
     },
   },
