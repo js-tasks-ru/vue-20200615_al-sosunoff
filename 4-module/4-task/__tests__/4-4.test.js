@@ -6,7 +6,7 @@ const LoginPage = require(getSolutionPath('views/LoginPage')).default;
 const RegisterPage = require(getSolutionPath('views/RegisterPage')).default;
 
 jest.mock('../data');
-jest.mock('../../solution/data');
+/* jest.mock('../../solution/data'); */
 const { login, register } = require(getSolutionPath('data'));
 
 global.alert = jest.fn();

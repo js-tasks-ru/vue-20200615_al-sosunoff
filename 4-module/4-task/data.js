@@ -21,14 +21,7 @@ export async function login(email, password) {
       }),
     });
   } catch (error) {
-    switch (error.body.statusCode) {
-      case 401:
-        throw new Error('Вы не авторизованы');
-      case 403:
-        throw new Error(error.body.message);
-      default:
-        throw new Error('Не известная ошибка');
-    }
+    throw new Error(error.body.message);
   }
 }
 
@@ -53,13 +46,6 @@ export async function register(email, fullname, password) {
       }),
     });
   } catch (error) {
-    switch (error.body.statusCode) {
-      case 401:
-        throw new Error('Вы не авторизованы');
-      case 403:
-        throw new Error(error.body.message);
-      default:
-        throw new Error('Не известная ошибка');
-    }
+    throw new Error(error.body.message);
   }
 }
