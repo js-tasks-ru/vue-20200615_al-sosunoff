@@ -35,10 +35,6 @@
 export default {
   name: 'App',
 
-  /* created() {
-    this.$router.replace('/');
-  }, */
-
   computed: {
     showReturnToMeetups() {
       return this.$route.matched.some(

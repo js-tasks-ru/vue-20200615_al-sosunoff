@@ -26,7 +26,7 @@ export function scrollBehavior(to, from, savedPosition) {
 export const router = new VueRouter({
   mode: 'history',
 
-  base: process.env.BASE_URL, // + '/4-module-2-task',
+  base: process.env.BASE_URL,
 
   scrollBehavior,
 
