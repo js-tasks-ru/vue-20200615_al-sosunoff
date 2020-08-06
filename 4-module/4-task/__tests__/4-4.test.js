@@ -4,10 +4,7 @@ const { getSolutionPath } = require('taskbook-test-utils');
 const { router } = require(getSolutionPath('router/index.js'));
 const LoginPage = require(getSolutionPath('views/LoginPage')).default;
 const RegisterPage = require(getSolutionPath('views/RegisterPage')).default;
-
-jest.mock('../data');
-/* jest.mock('../../solution/data'); */
-const { login, register } = require(getSolutionPath('data'));
+const data = require(getSolutionPath('data'));
 
 global.alert = jest.fn();
 
@@ -38,12 +35,13 @@ describe('4-module-4-task', () => {
     it('LoginPage должен выводить "Требуется ввести пароль" при сабмите c email, но без введённого пароля', async () => {
       await emailInput.setValue(email);
       await form.trigger('submit');
-      expect(login).not.toHaveBeenCalled();
+      jest.spyOn(data, 'login');
+      expect(data.login).not.toHaveBeenCalled();
       expect(global.alert).toHaveBeenCalledWith('Требуется ввести пароль');
     });
 
     it('LoginPage должен выводить "Неверные учетные данные" при сабмите с неверными данными', async () => {
-      login.mockImplementationOnce(() =>
+      jest.spyOn(data, 'login').mockImplementationOnce(() =>
         Promise.resolve({
           statusCode: 403,
           message: 'Неверные учетные данные',
@@ -53,16 +51,16 @@ describe('4-module-4-task', () => {
       await emailInput.setValue(email);
       await passwordInput.setValue(password);
       await form.trigger('submit');
-      expect(login).toHaveBeenCalledWith(email, password);
+      expect(data.login).toHaveBeenCalledWith(email, password);
       expect(global.alert).toHaveBeenCalledWith('Неверные учетные данные');
     });
 
     it('LoginPage должен выводить полное имя при сабмите с верными данными', async () => {
-      login.mockImplementationOnce(() =>
+      jest.spyOn(data, 'login').mockImplementationOnce(() =>
         Promise.resolve({
           id: 2,
-          fullname: 'Demo Organizer',
-          email: 'demo@email',
+          fullname,
+          email,
         }),
       );
       await emailInput.setValue(email);
@@ -70,8 +68,8 @@ describe('4-module-4-task', () => {
       await form.trigger('submit');
       await wrapper.vm.$nextTick();
       await wrapper.vm.$nextTick();
-      expect(login).toHaveBeenCalled();
-      expect(global.alert).toHaveBeenCalledWith('Demo Organizer');
+      expect(data.login).toHaveBeenCalled();
+      expect(global.alert).toHaveBeenCalledWith(fullname);
     });
   });
 
@@ -132,14 +130,15 @@ describe('4-module-4-task', () => {
       await passwordInput.setValue(password);
       await password2Input.setValue(password);
       await form.trigger('submit');
-      expect(register).not.toHaveBeenCalled();
+      jest.spyOn(data, 'register');
+      expect(data.register).not.toHaveBeenCalled();
       expect(global.alert).toHaveBeenCalledWith(
         'Требуется согласиться с условиями',
       );
     });
 
     it('RegisterPage должен выводить ошибку при неуспешной регистрации', async () => {
-      register.mockImplementationOnce(() =>
+      jest.spyOn(data, 'register').mockImplementationOnce(() =>
         Promise.resolve({
           statusCode: 422,
           message: 'Email адрес должен быть валидным',
@@ -152,14 +151,14 @@ describe('4-module-4-task', () => {
       await password2Input.setValue(password);
       await agreeInput.setChecked(true);
       await form.trigger('submit');
-      expect(register).toHaveBeenCalledWith(email, fullname, password);
+      expect(data.register).toHaveBeenCalledWith(email, fullname, password);
       expect(global.alert).toHaveBeenCalledWith(
         'Email адрес должен быть валидным',
       );
     });
 
     it('RegisterPage должен выводить ID пользователя при успешной регистрации', async () => {
-      register.mockImplementationOnce(() =>
+      jest.spyOn(data, 'register').mockImplementationOnce(() =>
         Promise.resolve({
           id: 6,
           fullname: 'Demo Organizer',
@@ -172,7 +171,7 @@ describe('4-module-4-task', () => {
       await password2Input.setValue(password);
       await agreeInput.setChecked(true);
       await form.trigger('submit');
-      expect(register).toHaveBeenCalled();
+      expect(data.register).toHaveBeenCalled();
       expect(global.alert).toHaveBeenCalledWith(6);
     });
   });
