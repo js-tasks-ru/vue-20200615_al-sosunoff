@@ -42,7 +42,7 @@ describe('4-module-4-task', () => {
 
     it('LoginPage должен выводить "Неверные учетные данные" при сабмите с неверными данными', async () => {
       jest.spyOn(data, 'login').mockImplementationOnce(() =>
-        Promise.resolve({
+        Promise.reject({
           statusCode: 403,
           message: 'Неверные учетные данные',
           error: 'Forbidden',
@@ -139,7 +139,7 @@ describe('4-module-4-task', () => {
 
     it('RegisterPage должен выводить ошибку при неуспешной регистрации', async () => {
       jest.spyOn(data, 'register').mockImplementationOnce(() =>
-        Promise.resolve({
+        Promise.reject({
           statusCode: 422,
           message: 'Email адрес должен быть валидным',
           error: 'Unprocessable Entity',

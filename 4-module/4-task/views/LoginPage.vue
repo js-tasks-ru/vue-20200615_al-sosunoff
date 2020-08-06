@@ -46,6 +46,7 @@ export default {
   }),
   methods: {
     validate() {
+      this.errorMessage = '';
       if (this.email.length === 0) {
         this.errorMessage = 'Требуется ввести Email';
         return false;

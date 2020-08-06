@@ -47,10 +47,10 @@ import { register } from '../data';
 export default {
   name: 'RegisterPage',
   data: () => ({
-    email: '',
-    fullname: '',
-    password: '',
-    passwordRepeat: '',
+    email: 'qwe@mail.ru',
+    fullname: '123',
+    password: '123123123',
+    passwordRepeat: '123123123',
     agree: false,
     errorMessage: '',
   }),

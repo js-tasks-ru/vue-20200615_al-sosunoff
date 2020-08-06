@@ -1,4 +1,3 @@
-import fetchJson from '../../utils/fetch-json.js';
 /** URL адрес API */
 export const API_URL = 'https://course-vue.javascript.ru/api';
 
@@ -9,20 +8,18 @@ export const API_URL = 'https://course-vue.javascript.ru/api';
  * @return {Promise} - объект с данными пользователя
  */
 export async function login(email, password) {
-  try {
-    return await fetchJson(`${API_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json;charset=utf-8',
-      },
-      body: JSON.stringify({
-        email,
-        password,
-      }),
-    });
-  } catch (error) {
-    throw new Error(error.body.message);
-  }
+  const response = await fetch(`${API_URL}/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+    },
+    body: JSON.stringify({
+      email,
+      password,
+    }),
+  });
+  let json = await response.json();
+  return json;
 }
 
 /**
@@ -33,19 +30,18 @@ export async function login(email, password) {
  * @return {Promise} - объект с данными зарегистрированного пользователя
  */
 export async function register(email, fullname, password) {
-  try {
-    return await fetchJson(`${API_URL}/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json;charset=utf-8',
-      },
-      body: JSON.stringify({
-        email,
-        fullname,
-        password,
-      }),
-    });
-  } catch (error) {
-    throw new Error(error.body.message);
-  }
+  const response = await fetch(`${API_URL}/auth/register`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+    },
+    body: JSON.stringify({
+      email,
+      fullname,
+      password,
+    }),
+  });
+
+  let json = await response.json();
+  return json;
 }
