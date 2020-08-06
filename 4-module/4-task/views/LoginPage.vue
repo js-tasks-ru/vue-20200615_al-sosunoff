@@ -64,8 +64,8 @@ export default {
         if (!this.validate()) {
           throw new Error(this.errorMessage);
         }
-        const { fullname } = await login(this.email, this.password);
-        alert(fullname);
+        const response = await login(this.email, this.password);
+        alert(response.fullname || response.message);
       } catch (error) {
         alert(error.message);
       }

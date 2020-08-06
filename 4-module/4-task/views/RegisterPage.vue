@@ -93,8 +93,13 @@ export default {
         if (!this.validate()) {
           throw new Error(this.errorMessage);
         }
-        const { id } = await register(this.email, this.fullname, this.password);
-        alert(id);
+
+        const response = await register(
+          this.email,
+          this.fullname,
+          this.password,
+        );
+        alert(response.id || response.message);
       } catch (error) {
         alert(error.message);
       }

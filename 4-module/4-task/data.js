@@ -18,8 +18,8 @@ export async function login(email, password) {
       password,
     }),
   });
-  let json = await response.json();
-  return json;
+  let body = await response.json();
+  return body;
 }
 
 /**
@@ -42,6 +42,6 @@ export async function register(email, fullname, password) {
     }),
   });
 
-  let json = await response.json();
-  return json;
+  let body = await response.json();
+  return body;
 }
