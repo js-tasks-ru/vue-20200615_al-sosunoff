@@ -1,10 +1,10 @@
 <template>
   <div class="container">
     <meetups-view
-      :view.sync="viewComputed"
-      :date.sync="dateComputed"
-      :participation.sync="participationComputed"
-      :search.sync="searchComputed"
+      :view.sync="query.view"
+      :date.sync="query.date"
+      :participation.sync="query.participation"
+      :search.sync="query.search"
     />
   </div>
 </template>
@@ -12,20 +12,37 @@
 <script>
 import MeetupsView from '../components/MeetupsView';
 
-const buildComputedProps = (...queryName) => {
-  const prepareEntries = queryName.map((name) => [
-    `${name}Computed`,
-    {
-      get: function () {
-        return this[name];
+const defaults = {
+  view: 'list',
+  date: 'all',
+  participation: 'all',
+  search: '',
+};
+
+export default {
+  name: 'PageWithQuery',
+  data() {
+    return {
+      query: {
+        view: defaults.view,
+        date: defaults.date,
+        participation: defaults.participation,
+        search: defaults.search,
       },
-      set: function (value) {
-        let query = { ...this.$route.query };
-        if (this.default[name] === value) {
-          delete query[name];
-        } else {
-          query[name] = value;
-        }
+    };
+  },
+  mounted() {},
+  computed: {},
+  methods: {},
+  watch: {
+    query: {
+      deep: true,
+      handler(newQuery) {
+        const query = Object.fromEntries(
+          Object.entries(newQuery).filter(
+            ([key, value]) => defaults[key] !== value,
+          ),
+        );
 
         this.$router.push({ path: '/', query }).catch((err) => {
           if (
@@ -37,52 +54,19 @@ const buildComputedProps = (...queryName) => {
             throw err;
           }
         });
-
-        this[name] = value;
       },
     },
-  ]);
-
-  return Object.fromEntries(prepareEntries);
-};
-
-const buildWatchProps = (...queryName) => {
-  const prepareEntries = queryName.map((name) => [
-    [`$route.query.${name}`],
-    {
-      handler: function (value) {
-        this[name] = value;
-      },
+    '$route.query': {
       immediate: true,
-    },
-  ]);
-
-  return Object.fromEntries(prepareEntries);
-};
-
-export default {
-  name: 'PageWithQuery',
-  data() {
-    return {
-      view: 'list',
-      date: 'all',
-      participation: 'all',
-      search: '',
-      default: {
-        view: 'list',
-        date: 'all',
-        participation: 'all',
-        search: '',
+      handler(newQuery) {
+        this.query = Object.fromEntries(
+          Object.keys(this.query).map((key) => [
+            key,
+            newQuery[key] || defaults[key],
+          ]),
+        );
       },
-    };
-  },
-  mounted() {},
-  computed: {
-    ...buildComputedProps('view', 'date', 'participation', 'search'),
-  },
-  methods: {},
-  watch: {
-    ...buildWatchProps('view', 'date', 'participation', 'search'),
+    },
   },
   components: { MeetupsView },
 };
