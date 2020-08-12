@@ -12,6 +12,48 @@
 <script>
 import MeetupsView from '../components/MeetupsView';
 
+const buildComputedProp = (name, queryName) => {
+  return {
+    [name]: {
+      get: function () {
+        return this[queryName];
+      },
+      set: function (value) {
+        let query = { ...this.$route.query };
+        if (this.default[queryName] === value) {
+          delete query[queryName];
+        } else {
+          query[queryName] = value;
+        }
+
+        this.$router.push({ path: '/', query }).catch((err) => {
+          if (
+            err.name !== 'NavigationDuplicated' &&
+            !err.message.includes(
+              'Avoided redundant navigation to current location:',
+            )
+          ) {
+            throw err;
+          }
+        });
+
+        this[queryName] = value;
+      },
+    },
+  };
+};
+
+const buildWatchProp = (queryName) => {
+  return {
+    [`$route.query.${queryName}`]: {
+      handler: function (value) {
+        this[queryName] = value;
+      },
+      immediate: true,
+    },
+  };
+};
+
 export default {
   name: 'PageWithQuery',
   data() {
@@ -30,77 +72,17 @@ export default {
   },
   mounted() {},
   computed: {
-    viewCom: {
-      get: function () {
-        return this.view;
-      },
-      set: function (value) {
-        this.pushQueryParam('view', value);
-      },
-    },
-    dateCom: {
-      get: function () {
-        return this.date;
-      },
-      set: function (value) {
-        this.pushQueryParam('date', value);
-      },
-    },
-    participationCom: {
-      get: function () {
-        return this.participation;
-      },
-      set: function (value) {
-        this.pushQueryParam('participation', value);
-      },
-    },
-    searchCom: {
-      get: function () {
-        return this.search;
-      },
-      set: function (value) {
-        this.pushQueryParam('search', value);
-      },
-    },
+    ...buildComputedProp('viewCom', 'view'),
+    ...buildComputedProp('dateCom', 'date'),
+    ...buildComputedProp('participationCom', 'participation'),
+    ...buildComputedProp('searchCom', 'search'),
   },
-  methods: {
-    pushQueryParam(queryParam, value) {
-      let query = { ...this.$route.query };
-      if (this.default[queryParam] === value) {
-        delete query[queryParam];
-      } else {
-        query[queryParam] = value;
-      }
-
-      this.$router.push({ path: '/', query });
-      this[queryParam] = value;
-    },
-  },
+  methods: {},
   watch: {
-    ['$route.query.view']: {
-      handler: function (value) {
-        this.view = value;
-      },
-      immediate: true,
-    },
-    ['$route.query.date']: {
-      handler: function (value) {
-        this.date = value;
-      },
-      immediate: true,
-    },
-    ['$route.query.participation']: {
-      handler: function (value) {
-        this.participation = value;
-      },
-      immediate: true,
-    },
-    ['$route.query.search']: {
-      handler: function (value) {
-        this.search = value;
-      },
-      immediate: true,
-    },
+    ...buildWatchProp('view'),
+    ...buildWatchProp('date'),
+    ...buildWatchProp('participation'),
+    ...buildWatchProp('search'),
   },
   components: { MeetupsView },
 };
