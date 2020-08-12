@@ -1,10 +1,10 @@
 <template>
   <div class="container">
     <meetups-view
-      :view.sync="viewCom"
-      :date.sync="dateCom"
-      :participation.sync="participationCom"
-      :search.sync="searchCom"
+      :view.sync="viewComputed"
+      :date.sync="dateComputed"
+      :participation.sync="participationComputed"
+      :search.sync="searchComputed"
     />
   </div>
 </template>
@@ -12,18 +12,19 @@
 <script>
 import MeetupsView from '../components/MeetupsView';
 
-const buildComputedProp = (name, queryName) => {
-  return {
-    [name]: {
+const buildComputedProps = (...queryName) => {
+  const prepareEntries = queryName.map((name) => [
+    `${name}Computed`,
+    {
       get: function () {
-        return this[queryName];
+        return this[name];
       },
       set: function (value) {
         let query = { ...this.$route.query };
-        if (this.default[queryName] === value) {
-          delete query[queryName];
+        if (this.default[name] === value) {
+          delete query[name];
         } else {
-          query[queryName] = value;
+          query[name] = value;
         }
 
         this.$router.push({ path: '/', query }).catch((err) => {
@@ -37,21 +38,26 @@ const buildComputedProp = (name, queryName) => {
           }
         });
 
-        this[queryName] = value;
+        this[name] = value;
       },
     },
-  };
+  ]);
+
+  return Object.fromEntries(prepareEntries);
 };
 
-const buildWatchProp = (queryName) => {
-  return {
-    [`$route.query.${queryName}`]: {
+const buildWatchProps = (...queryName) => {
+  const prepareEntries = queryName.map((name) => [
+    [`$route.query.${name}`],
+    {
       handler: function (value) {
-        this[queryName] = value;
+        this[name] = value;
       },
       immediate: true,
     },
-  };
+  ]);
+
+  return Object.fromEntries(prepareEntries);
 };
 
 export default {
@@ -72,17 +78,11 @@ export default {
   },
   mounted() {},
   computed: {
-    ...buildComputedProp('viewCom', 'view'),
-    ...buildComputedProp('dateCom', 'date'),
-    ...buildComputedProp('participationCom', 'participation'),
-    ...buildComputedProp('searchCom', 'search'),
+    ...buildComputedProps('view', 'date', 'participation', 'search'),
   },
   methods: {},
   watch: {
-    ...buildWatchProp('view'),
-    ...buildWatchProp('date'),
-    ...buildWatchProp('participation'),
-    ...buildWatchProp('search'),
+    ...buildWatchProps('view', 'date', 'participation', 'search'),
   },
   components: { MeetupsView },
 };
