@@ -13,7 +13,7 @@ export default {
   components: { ImageUploader },
   data() {
     return {
-      imageId: null,
+      imageId: 1,
     };
   },
 };

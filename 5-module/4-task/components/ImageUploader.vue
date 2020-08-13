@@ -2,24 +2,85 @@
   <div class="image-uploader">
     <label
       class="image-uploader__preview image-uploader__preview-loading"
-      :style="`--bg-image: url('https://course-vue.javascript.ru/api/images/1')`"
+      :style="{ '--bg-image': image }"
+      @click="openModalNative"
     >
-      <span>Удалить изображение</span>
+      <span>{{ title }}</span>
       <input
         type="file"
         accept="image/*"
         class="form-control-file"
+        @change="change"
         ref="fileControl"
+        :disabled="statusCurent === 'expect'"
       />
     </label>
   </div>
 </template>
 
 <script>
-// import { ImageService } from '../image-service';
+import { ImageService } from '../image-service';
+
+const status = {
+  load: 'Загрузить изображение',
+  expect: 'Загрузка...',
+  success: 'Удалить изображение',
+};
 
 export default {
   name: 'ImageUploader',
+  data() {
+    return {
+      statusCurent: 'load',
+    };
+  },
+  methods: {
+    openModalNative(e) {
+      if (this.imageId !== null) {
+        e.preventDefault();
+        this.$emit('change', null);
+        this.statusCurent = 'load';
+      }
+    },
+    async change({ target }) {
+      const [file] = target.files;
+      this.statusCurent = 'expect';
+      const { id } = await ImageService.uploadImage(file);
+      this.$emit('change', id);
+    },
+  },
+  computed: {
+    title() {
+      return status[this.statusCurent];
+    },
+    image() {
+      return this.imageId === null
+        ? null
+        : `url(${ImageService.getImageURL(this.imageId)})`;
+    },
+  },
+  watch: {
+    imageId: {
+      immediate: true,
+      handler(value) {
+        if (value !== null) {
+          this.statusCurent = 'success';
+        } else {
+          this.statusCurent = 'load';
+        }
+      },
+    },
+  },
+  model: {
+    prop: 'imageId',
+    event: 'change',
+  },
+  props: {
+    imageId: {
+      type: Number,
+      default: null,
+    },
+  },
 };
 </script>
 
