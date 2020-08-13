@@ -1,7 +1,10 @@
 <template>
   <div class="image-uploader">
     <label
-      class="image-uploader__preview image-uploader__preview-loading"
+      class="image-uploader__preview"
+      :class="{
+        'image-uploader__preview-loading': statusCurent === 'expect',
+      }"
       :style="{ '--bg-image': image }"
       @click="openModalNative"
     >
@@ -12,7 +15,6 @@
         class="form-control-file"
         @change="change"
         ref="fileControl"
-        :disabled="statusCurent === 'expect'"
       />
     </label>
   </div>
@@ -35,40 +37,53 @@ export default {
     };
   },
   methods: {
+    clear() {
+      if (this.$refs.fileControl.value) {
+        try {
+          this.$refs.fileControl.value = ''; //for IE11, latest Chrome/Firefox/Opera...
+        } catch (err) {
+          //
+        }
+        if (this.$refs.fileControl.value) {
+          //for IE5 ~ IE10
+          var form = document.createElement('form'),
+            parentNode = this.$refs.fileControl.parentNode,
+            ref = this.$refs.fileControl.nextSibling;
+          form.appendChild(this.$refs.fileControl);
+          form.reset();
+          parentNode.insertBefore(this.$refs.fileControl, ref);
+        }
+      }
+    },
     openModalNative(e) {
       if (this.imageId !== null) {
         e.preventDefault();
         this.$emit('change', null);
         this.statusCurent = 'load';
+        this.clear();
       }
     },
-    async change({ target }) {
+    change({ target }) {
+      this.$refs.fileControl.disabled = true;
       const [file] = target.files;
       this.statusCurent = 'expect';
-      const { id } = await ImageService.uploadImage(file);
-      this.$emit('change', id);
+      ImageService.uploadImage(file).then(({ id }) => {
+        this.$refs.fileControl.disabled = false;
+        this.statusCurent = 'success';
+        this.$emit('change', id);
+      });
     },
   },
   computed: {
     title() {
-      return status[this.statusCurent];
+      return this.imageId !== null
+        ? status['success']
+        : status[this.statusCurent];
     },
     image() {
       return this.imageId === null
         ? null
         : `url(${ImageService.getImageURL(this.imageId)})`;
-    },
-  },
-  watch: {
-    imageId: {
-      immediate: true,
-      handler(value) {
-        if (value !== null) {
-          this.statusCurent = 'success';
-        } else {
-          this.statusCurent = 'load';
-        }
-      },
     },
   },
   model: {
