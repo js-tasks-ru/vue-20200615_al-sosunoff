@@ -1,25 +1,100 @@
 <template>
   <div class="image-uploader">
     <label
-      class="image-uploader__preview image-uploader__preview-loading"
-      :style="`--bg-image: url('https://course-vue.javascript.ru/api/images/1')`"
+      class="image-uploader__preview"
+      :class="{
+        'image-uploader__preview-loading': statusCurent === 'expect',
+      }"
+      :style="{ '--bg-image': image }"
+      @click="openModalNative"
     >
-      <span>Удалить изображение</span>
+      <span>{{ title }}</span>
       <input
         type="file"
         accept="image/*"
         class="form-control-file"
+        @change="change"
         ref="fileControl"
+        :disabled="statusCurent === 'expect'"
       />
     </label>
   </div>
 </template>
 
 <script>
-// import { ImageService } from '../image-service';
+import { ImageService } from '../image-service';
+
+const status = {
+  load: 'Загрузить изображение',
+  expect: 'Загрузка...',
+  success: 'Удалить изображение',
+};
 
 export default {
   name: 'ImageUploader',
+  data() {
+    return {
+      statusCurent: 'load',
+    };
+  },
+  methods: {
+    clear() {
+      if (this.$refs.fileControl.value) {
+        try {
+          this.$refs.fileControl.value = ''; //for IE11, latest Chrome/Firefox/Opera...
+        } catch (err) {
+          //
+        }
+        if (this.$refs.fileControl.value) {
+          //for IE5 ~ IE10
+          var form = document.createElement('form'),
+            parentNode = this.$refs.fileControl.parentNode,
+            ref = this.$refs.fileControl.nextSibling;
+          form.appendChild(this.$refs.fileControl);
+          form.reset();
+          parentNode.insertBefore(this.$refs.fileControl, ref);
+        }
+      }
+    },
+    openModalNative(e) {
+      if (this.imageId !== null) {
+        e.preventDefault();
+        this.$emit('change', null);
+        this.statusCurent = 'load';
+        this.clear();
+      }
+    },
+    change({ target }) {
+      const [file] = target.files;
+      this.statusCurent = 'expect';
+      ImageService.uploadImage(file).then(({ id }) => {
+        this.statusCurent = 'success';
+        this.$emit('change', id);
+      });
+    },
+  },
+  computed: {
+    title() {
+      return this.imageId !== null
+        ? status['success']
+        : status[this.statusCurent];
+    },
+    image() {
+      return this.imageId === null
+        ? null
+        : `url(${ImageService.getImageURL(this.imageId)})`;
+    },
+  },
+  model: {
+    prop: 'imageId',
+    event: 'change',
+  },
+  props: {
+    imageId: {
+      type: Number,
+      default: null,
+    },
+  },
 };
 </script>
 
