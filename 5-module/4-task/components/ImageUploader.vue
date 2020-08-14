@@ -15,6 +15,7 @@
         class="form-control-file"
         @change="change"
         ref="fileControl"
+        :disabled="statusCurent === 'expect'"
       />
     </label>
   </div>
@@ -64,11 +65,9 @@ export default {
       }
     },
     change({ target }) {
-      this.$refs.fileControl.disabled = true;
       const [file] = target.files;
       this.statusCurent = 'expect';
       ImageService.uploadImage(file).then(({ id }) => {
-        this.$refs.fileControl.disabled = false;
         this.statusCurent = 'success';
         this.$emit('change', id);
       });
