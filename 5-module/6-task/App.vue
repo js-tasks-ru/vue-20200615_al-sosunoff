@@ -12,11 +12,10 @@
     </div>
     <hr />
     <nodes-pagination :page="page" :per-page="5">
-      <div>1</div>
-      <!-- <fieldset v-for="i in 22" :key="i">
+      <fieldset v-for="i in 22" :key="i">
         <legend>Card #{{ i }}</legend>
         Body
-      </fieldset> -->
+      </fieldset>
     </nodes-pagination>
   </div>
 </template>

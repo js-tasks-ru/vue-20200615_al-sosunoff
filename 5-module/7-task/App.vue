@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <button @click="updateList">Update list</button>
-    <fade-transition-group tag="ul">
+    <fade-transition-group tag="ul" @click="TEST">
       <li v-for="item in list" :key="item" :class="{ red: item > 0.5 }">
         <div>{{ item }}</div>
       </li>
@@ -28,6 +28,9 @@ export default {
   },
 
   methods: {
+    TEST() {
+      console.log(1);
+    },
     updateList() {
       this.list.push(Math.random());
       this.list.splice(2, 1);
