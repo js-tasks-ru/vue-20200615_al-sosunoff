@@ -1,5 +1,5 @@
 <template>
-  <div class="messages-list">
+  <div ref="list" class="messages-list">
     <article v-for="message in messages" :key="message.id" class="message">
       {{ message.text }}
     </article>
@@ -14,6 +14,17 @@ export default {
     messages: {
       type: Array,
       required: true,
+    },
+  },
+
+  watch: {
+    messages: {
+      immediate: true,
+      handler() {
+        this.$nextTick(() => {
+          this.$refs.list.scroll(0, this.$refs.list.scrollHeight);
+        });
+      },
     },
   },
 };
