@@ -15,17 +15,6 @@ export default {
 
   components: { MessagesList },
 
-  /* watch: {
-    messages: {
-      immediate: true,
-      handler() {
-        this.$nextTick(() => {
-          this.$refs.list.scroll(0, this.$refs.list.scrollHeight);
-        });
-      },
-    },
-  }, */
-
   data() {
     return {
       newMessage: '',
