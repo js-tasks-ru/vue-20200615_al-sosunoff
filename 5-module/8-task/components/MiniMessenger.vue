@@ -1,6 +1,6 @@
 <template>
   <main>
-    <messages-list class="messages" :messages="messages" />
+    <messages-list ref="list" class="messages" :messages="messages" />
     <form @submit.prevent="send" style="display: flex;">
       <input type="text" placeholder="New message" v-model="newMessage" />
       <button>Send</button>
@@ -14,6 +14,17 @@ export default {
   name: 'MiniMessenger',
 
   components: { MessagesList },
+
+  /* watch: {
+    messages: {
+      immediate: true,
+      handler() {
+        this.$nextTick(() => {
+          this.$refs.list.scroll(0, this.$refs.list.scrollHeight);
+        });
+      },
+    },
+  }, */
 
   data() {
     return {
@@ -34,6 +45,9 @@ export default {
         text: this.newMessage,
       });
       this.newMessage = '';
+      this.$nextTick(() => {
+        this.$refs.list.$el.scroll(0, this.$refs.list.$el.scrollHeight);
+      });
     },
   },
 };

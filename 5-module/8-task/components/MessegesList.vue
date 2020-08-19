@@ -16,17 +16,6 @@ export default {
       required: true,
     },
   },
-
-  watch: {
-    messages: {
-      immediate: true,
-      handler() {
-        this.$nextTick(() => {
-          this.$refs.list.scroll(0, this.$refs.list.scrollHeight);
-        });
-      },
-    },
-  },
 };
 </script>
 
