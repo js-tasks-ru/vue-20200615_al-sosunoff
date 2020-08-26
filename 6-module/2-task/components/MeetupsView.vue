@@ -4,7 +4,8 @@
       <div class="filters-panel__col">
         <form-check
           :options="dateFilterOptions"
-          v-model="options.date"
+          :selected="options.date"
+          @change="$emit('update:options', { ...options, date: $event })"
         ></form-check>
       </div>
 
@@ -16,12 +17,26 @@
               class="form-control form-control_rounded form-control_sm"
               type="text"
               placeholder="Поиск"
-              v-model="options.search"
+              :value="options.search"
+              @input="
+                $emit('update:options', {
+                  ...options,
+                  search: $event.target.value,
+                })
+              "
             />
           </div>
         </div>
         <div class="form-group form-group_inline">
-          <page-tabs :selected.sync="options.view"></page-tabs>
+          <page-tabs
+            :selected="options.view"
+            @update:selected="
+              $emit('update:options', {
+                ...options,
+                view: $event,
+              })
+            "
+          ></page-tabs>
         </div>
       </div>
     </div>
@@ -64,14 +79,25 @@ export default {
     AppEmpty,
   },
 
+  props: {
+    meetups: {
+      type: Array,
+      default: () => [],
+    },
+    options: {
+      type: Object,
+      default: () => ({}),
+    },
+  },
+
   data() {
     return {
-      options: {
+      /* options: {
         date: 'all',
         participation: 'all',
         search: '',
         view: 'list',
-      },
+      }, */
       dateFilterOptions: [
         { text: 'Все', value: 'all' },
         { text: 'Прошедшие', value: 'past' },
