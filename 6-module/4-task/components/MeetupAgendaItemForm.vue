@@ -145,7 +145,6 @@ export default {
   data() {
     return {
       agendaItemLocal: {},
-      range: 0,
     };
   },
 
@@ -163,7 +162,6 @@ export default {
     agendaItem: {
       immediate: true,
       handler(value) {
-        this.range = getRange(value.startsAt, value.endsAt);
         this.agendaItemLocal = { ...value };
       },
     },
@@ -194,15 +192,15 @@ export default {
     changeStartTime(startsAt) {
       this.update({
         startsAt,
-        endsAt: getTimeString(getTimestamp(startsAt) + this.range),
+        endsAt: getTimeString(
+          getTimestamp(startsAt) +
+            getRange(
+              this.agendaItemLocal.startsAt,
+              this.agendaItemLocal.endsAt,
+            ),
+        ),
       });
     },
-    /* changeEndTime(endsAt) {
-      this.update({
-        startsAt: getTimeString(getTimestamp(endsAt) - this.range),
-        endsAt,
-      });
-    }, */
   },
 
   computed: {

@@ -3,7 +3,7 @@
     <div class="container">
       <pre><code>{{ agendaItem }}</code></pre>
       <meetup-agenda-item-form
-        :agenda-item.sync="agendaItem"
+        :agenda-item="agendaItem"
         @remove="handleRemove"
       />
     </div>
