@@ -157,14 +157,13 @@ export default {
     },
   },
 
-  mounted() {
-    this.range = getRange(this.agendaItem.startsAt, this.agendaItem.endsAt);
-  },
+  mounted() {},
 
   watch: {
     agendaItem: {
       immediate: true,
       handler(value) {
+        this.range = getRange(value.startsAt, value.endsAt);
         this.agendaItemLocal = { ...value };
       },
     },
@@ -172,9 +171,12 @@ export default {
 
   methods: {
     update(valueObject) {
-      this.$emit('update:agendaItem', {
+      this.agendaItemLocal = {
         ...this.agendaItemLocal,
         ...valueObject,
+      };
+      this.$emit('update:agendaItem', {
+        ...this.agendaItemLocal,
       });
     },
     fieldEnabled(field) {
