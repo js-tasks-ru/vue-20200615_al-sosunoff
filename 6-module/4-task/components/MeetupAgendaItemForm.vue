@@ -8,8 +8,8 @@
       <select
         class="form-control"
         title="Тип"
-        :value="agendaItem.type"
-        @change="update('type', $event.target.value)"
+        :value="agendaItemLocal.type"
+        @change="update({ ['type']: $event.target.value })"
       >
         <option
           :value="item.value"
@@ -28,8 +28,8 @@
           <input
             class="form-control"
             type="time"
-            :value="agendaItem.startsAt"
-            :placeholder="agendaItem.startsAt"
+            :value="agendaItemLocal.startsAt"
+            :placeholder="agendaItemLocal.startsAt"
             @input="changeStartTime($event.target.value)"
           />
         </div>
@@ -40,8 +40,8 @@
           <input
             class="form-control"
             type="time"
-            :value="agendaItem.endsAt"
-            :placeholder="agendaItem.endsAt"
+            :value="agendaItemLocal.endsAt"
+            :placeholder="agendaItemLocal.endsAt"
             @input="changeEndTime($event.target.value)"
           />
         </div>
@@ -52,8 +52,8 @@
       <label class="form-label">{{ titleName }}</label>
       <input
         class="form-control"
-        :value="agendaItem.title"
-        @change="update('title', $event.target.value)"
+        :value="agendaItemLocal.title"
+        @input="update({ ['title']: $event.target.value })"
       />
     </div>
 
@@ -61,8 +61,8 @@
       <label class="form-label">Докладчик</label>
       <input
         class="form-control"
-        :value="agendaItem.speaker"
-        @change="update('speaker', $event.target.value)"
+        :value="agendaItemLocal.speaker"
+        @input="update({ ['speaker']: $event.target.value })"
       />
     </div>
 
@@ -70,8 +70,8 @@
       <label class="form-label">Описание</label>
       <textarea
         class="form-control"
-        :value="agendaItem.description"
-        @change="update('description', $event.target.value)"
+        :value="agendaItemLocal.description"
+        @input="update({ ['description']: $event.target.value })"
       ></textarea>
     </div>
 
@@ -79,8 +79,8 @@
       <label class="form-label">Язык</label>
       <select
         class="form-control"
-        :value="agendaItem.language"
-        @change="update('language', $event.target.value)"
+        :value="agendaItemLocal.language"
+        @change="update({ ['language']: $event.target.value })"
       >
         <option
           :value="item.value"
@@ -114,7 +114,7 @@ const agendaItemLanguages = [
 
 const getUnicId = () => `_${Math.random().toString(36).substr(2, 9)}`;
 
-const getTime = (time) => {
+const getTimestamp = (time) => {
   const [hours, minuts] = time.split(':');
   return new Date(
     new Date().getFullYear(),
@@ -126,14 +126,25 @@ const getTime = (time) => {
 };
 
 const getRange = (timeStart, timeEnd) => {
-  return getTime(timeEnd) - getTime(timeStart);
+  return getTimestamp(timeEnd) - getTimestamp(timeStart);
+};
+
+const getTimeString = (timestamp) => {
+  return `${new Date(timestamp)
+    .getHours()
+    .toString()
+    .padStart(2, '0')}:${new Date(timestamp)
+    .getMinutes()
+    .toString()
+    .padStart(2, '0')}`;
 };
 
 export default {
   name: 'MeetupAgendaItemForm',
 
-  date() {
+  data() {
     return {
+      agendaItemLocal: {},
       range: 0,
     };
   },
@@ -150,63 +161,43 @@ export default {
     this.range = getRange(this.agendaItem.startsAt, this.agendaItem.endsAt);
   },
 
-  /* watch: {
+  watch: {
     agendaItem: {
       immediate: true,
       handler(value) {
-        this.range = getRange(value.startsAt, value.endsAt);
+        this.agendaItemLocal = { ...value };
       },
     },
-  }, */
+  },
 
   methods: {
-    update(field, value) {
+    update(valueObject) {
       this.$emit('update:agendaItem', {
-        ...this.agendaItem,
-        [field]: value,
+        ...this.agendaItemLocal,
+        ...valueObject,
       });
     },
     fieldEnabled(field) {
       return {
-        registration: ['title', 'description'],
-        opening: ['title', 'description'],
-        break: ['title', 'description'],
-        coffee: ['title', 'description'],
-        closing: ['title', 'description'],
-        afterparty: ['title', 'description'],
+        registration: ['title'],
+        opening: ['title'],
+        break: ['title'],
+        coffee: ['title'],
+        closing: ['title'],
+        afterparty: ['title'],
         talk: ['title', 'speaker', 'description', 'language'],
         other: ['title', 'description'],
-      }[this.agendaItem.type].includes(field);
+      }[this.agendaItemLocal.type].includes(field);
     },
     changeStartTime(startsAt) {
-      const newEndTime = getTime(startsAt) + this.range;
-      const endsAt = `${new Date(newEndTime)
-        .getHours()
-        .toString()
-        .padStart(2, '0')}:${new Date(newEndTime)
-        .getMinutes()
-        .toString()
-        .padStart(2, '0')}`;
-
-      this.$emit('update:agendaItem', {
-        ...this.agendaItem,
+      this.update({
         startsAt,
-        endsAt,
+        endsAt: getTimeString(getTimestamp(startsAt) + this.range),
       });
     },
     changeEndTime(endsAt) {
-      const newStartTime = getTime(endsAt) - this.range;
-      const startsAt = `${new Date(newStartTime)
-        .getHours()
-        .toString()
-        .padStart(2, '0')}:${new Date(newStartTime)
-        .getMinutes()
-        .toString()
-        .padStart(2, '0')}`;
-
-      this.$emit('update:agendaItem', {
-        ...this.agendaItem,
-        startsAt,
+      this.update({
+        startsAt: getTimeString(getTimestamp(endsAt) - this.range),
         endsAt,
       });
     },
@@ -235,7 +226,7 @@ export default {
         afterparty: 'Нестандартный текст (необязательно)',
         talk: 'Тема',
         other: 'Заголовок',
-      }[this.agendaItem.type];
+      }[this.agendaItemLocal.type];
     },
   },
 };
