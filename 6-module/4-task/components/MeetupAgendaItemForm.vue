@@ -42,7 +42,7 @@
             type="time"
             :value="agendaItemLocal.endsAt"
             :placeholder="agendaItemLocal.endsAt"
-            @input="changeEndTime($event.target.value)"
+            @input="update({ ['endsAt']: $event.target.value })"
           />
         </div>
       </div>
@@ -197,12 +197,12 @@ export default {
         endsAt: getTimeString(getTimestamp(startsAt) + this.range),
       });
     },
-    changeEndTime(endsAt) {
+    /* changeEndTime(endsAt) {
       this.update({
         startsAt: getTimeString(getTimestamp(endsAt) - this.range),
         endsAt,
       });
-    },
+    }, */
   },
 
   computed: {
