@@ -12,7 +12,7 @@
             class="form-control"
             type="date"
             :value="dateFormat"
-            @change="meetupLocal.date = $event.target.valueAsDate"
+            @input="meetupLocal.date = new Date($event.target.value)"
           />
         </div>
         <div class="form-group">
