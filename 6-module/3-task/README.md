@@ -1,36 +1,217 @@
 # MeetupForm
 
-Требуется закончить разработку компонента `MeetupForm`:
-- Входные параметры:
-    - `meetup` -- обязательный объект с описанием редактируемого митапа;
-    - `submitText` -- строка с текстом кнопки сабмита;
-- При нажатии на кнопку отмены порождается событие `cancel`;
-- При сабмите формы порождается событие `submit` с новыми данными митапа;
-- Форма редактирования митапа содержит поля:
-    - "Название" (поле ввода `title`);
-    - "Дата" (поле ввода даты `date`);
-    - "Место" (поле ввода `place`);
-    - "Описание" (многострочное поле ввода `description`);
-    - "Изображение" (ImageUploader `imageId`);
-- Дата вводится через `input[type=date]` в формате `YYYY-MM-DD` (игнорируем Safari);
-- Свойство `date` митапа на входе и выходе (при `submit`) имеет тип `Date`;
-- Изображение выбирается компонентом заглушкой `ImageUploader`, который имеет модель на `value + change` с `imageId` при загрузке или удалении изображения;
-- Форма редактирования митапа также предоставляет редактирование программы:
-    - Клик на "Добавить этап программы" добавляет новый этап программы в конец;
-    - Каждый этап редактируется компонентом заглушкой `MeetupAgendaItemForm`, который имеет синхронизирующийся входной параметр `agendaItem` с данными этапа и порождает событие `remove` при клике на кнопку удаления; 
-- Если уже есть хотя бы один этап программы, то новый этап программы должен добавляться с временем начала `startsAt`, равным времени окончания `endsAt` последнего этапа; 
-- Синхронизация локального состояния с параметром не требуется (считаем, что родитель только даёт начальное состояние, но не меняет редактируемый объект);
-- Валидация не требуется.
+Большая часть задачи легко решается путём доделывания кода с вебинара.
 
-<img src="https://i.imgur.com/RtzPDQy.gif" alt="Example" />
+Сложность может создать поле для редактирования даты. В объекте описания митапа дата хранится как объект типа Date, в то время как поле ввода предлагает редактировать дату как строку в формате `YYYY-MM-DD`.
 
----
+Есть два варианта решения:
+1. Использовать в поле ввода локальное свойство, при изменении которого обновляется (через `watch`) обновляется свойство `date` у объекта с данными митапа;
+2. Использовать в поле ввода вычисляемое свойство с геттером, который возвращает строку из даты в митапе, и сеттером, который устанавливает эту дату как Date;
+3. Аналогично второму варианту, но разделить модель на `value` и `@change`, а вычисляемое свойство с геттером и сеттером на простое вычисляемое свойство (для `value`) и метод (для `change`).
 
-### Инструкция
+Код решения второго варианта:
+```vue
+<input class="form-control" type="date" v-model="meetupDate" />
+```
 
-📝 Для решения задачи отредактируйте файл: `components/MeetupForm.vue`.
+```javascript
+computed: {
+  meetupDate: {
+    get() {
+      return new Date(this.meetup_.date).toISOString().substr(0, 10);
+    },
+    set(value) {
+      this.meetup_.date = new Date(value);
+    },
+  },
+}
+```
 
-🚀 Команда запуска для ручного тестирования: `npm run vue-serve`;<br>
-приложение будет доступно на [http://localhost:8080/6-module-3-task](http://localhost:8080/6-module-3-task).
+Кроме того, теперь нельзя использовать сериализацию через JSON для клонирования объекта, так как поле типа Date будет преобразовано к строке при сериализации.
 
-✅ Доступно автоматическое тестирование: `npm test 6-3`.
+Полное решение:
+
+```html
+<template>
+  <form @submit.prevent="onSubmit" class="form meetup-form">
+    <div class="meetup-form__content">
+      <fieldset class="form-section">
+        <div class="form-group">
+          <label class="form-label">Название</label>
+          <input class="form-control" v-model="meetup_.title" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Дата</label>
+          <input class="form-control" type="date" v-model="meetupDate" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Место</label>
+          <input class="form-control" v-model="meetup_.place" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Описание</label>
+          <textarea
+            class="form-control"
+            v-model="meetup_.description"
+            rows="3"
+          ></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Изображение</label>
+          <image-uploader v-model="meetup_.imageId" />
+        </div>
+      </fieldset>
+
+      <h3 class="form__section-title">Программа</h3>
+      <meetup-agenda-item-form
+        v-for="(agendaItem, index) in meetup_.agenda"
+        :key="agendaItem.id"
+        :agenda-item="agendaItem"
+        @update:agendaItem="updateAgendaItem(index, $event)"
+        @remove="removeAgendaItem(index)"
+        class="mb-3"
+      />
+
+      <div class="form-section_append">
+        <button type="button" @click="addAgendaItem" data-test="addAgendaItem">
+          + Добавить этап программы
+        </button>
+      </div>
+    </div>
+
+    <div class="meetup-form__aside">
+      <div class="meetup-form__aside_stick">
+        <button
+          class="button button_secondary button_block"
+          type="button"
+          @click="$emit('cancel')"
+          data-test="cancel"
+        >
+          Отмена
+        </button>
+        <button
+          class="button button_primary button_block"
+          type="submit"
+          data-test="submit"
+        >
+          {{ submitText }}
+        </button>
+      </div>
+    </div>
+  </form>
+</template>
+
+<script>
+import MeetupAgendaItemForm from './MeetupAgendaItemForm.vue';
+import ImageUploader from './ImageUploader';
+import deepClone from '../lodash.clonedeep.min';
+
+function buildAgendaItem() {
+  return {
+    id: Math.random(),
+    startsAt: '00:00',
+    endsAt: '00:00',
+    type: 'other',
+    title: null,
+    description: null,
+    speaker: null,
+    language: null,
+  };
+}
+
+export default {
+  name: 'MeetupForm',
+
+  components: {
+    ImageUploader,
+    MeetupAgendaItemForm,
+  },
+
+  props: {
+    meetup: {
+      type: Object,
+      required: true,
+    },
+    submitText: {
+      type: String,
+      default: '',
+    },
+  },
+
+  data() {
+    return {
+      meetup_: deepClone(this.meetup),
+    };
+  },
+
+  computed: {
+    meetupDate: {
+      get() {
+        return new Date(this.meetup_.date).toISOString().substr(0, 10);
+      },
+      set(value) {
+        this.meetup_.date = new Date(value);
+      },
+    },
+  },
+
+  methods: {
+    addAgendaItem() {
+      const newItem = buildAgendaItem();
+      if (this.meetup_.agenda.length) {
+        newItem.startsAt = this.meetup_.agenda[
+          this.meetup_.agenda.length - 1
+        ].endsAt;
+      }
+      this.meetup_.agenda.push(newItem);
+    },
+
+    updateAgendaItem(index, newItem) {
+      this.meetup_.agenda.splice(index, 1, newItem);
+    },
+
+    removeAgendaItem(index) {
+      this.meetup_.agenda.splice(index, 1);
+    },
+
+    onSubmit() {
+      this.$emit('submit', deepClone(this.meetup_));
+    },
+  },
+};
+</script>
+
+<style scoped>
+.meetup-form__aside {
+  margin: 48px 0;
+}
+
+.meetup-form__aside_stick > .button {
+  margin: 0 0 12px 0;
+}
+
+@media all and (min-width: 992px) {
+  .meetup-form {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .meetup-form__content {
+    flex: 1 0 calc(100% - 320px);
+  }
+
+  .meetup-form__aside {
+    flex: 1 0 320px;
+    max-width: 320px;
+    width: 100%;
+    padding-left: 137px;
+    margin: 0;
+  }
+
+  .meetup-form__aside_stick {
+    position: sticky;
+    top: 32px;
+  }
+}
+</style>
+```
