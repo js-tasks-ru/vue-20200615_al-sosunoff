@@ -1,34 +1,54 @@
 <template>
-  <form class="form meetup-form">
+  <form class="form meetup-form" @submit.prevent="submit">
     <div class="meetup-form__content">
       <fieldset class="form-section">
         <div class="form-group">
           <label class="form-label">Название</label>
-          <input class="form-control" />
+          <input class="form-control" v-model="meetupLocal.title" />
         </div>
         <div class="form-group">
           <label class="form-label">Дата</label>
-          <input class="form-control" type="date" />
+          <input
+            class="form-control"
+            type="date"
+            :value="dateFormat"
+            @input="meetupLocal.date = new Date($event.target.value)"
+          />
         </div>
         <div class="form-group">
           <label class="form-label">Место</label>
-          <input class="form-control" />
+          <input class="form-control" v-model="meetupLocal.place" />
         </div>
         <div class="form-group">
           <label class="form-label">Описание</label>
-          <textarea class="form-control" rows="3"></textarea>
+          <textarea
+            class="form-control"
+            rows="3"
+            v-model="meetupLocal.description"
+          ></textarea>
         </div>
         <div class="form-group">
           <label class="form-label">Изображение</label>
-          <image-uploader />
+          <image-uploader v-model="meetupLocal.imageId" />
         </div>
       </fieldset>
 
       <h3 class="form__section-title">Программа</h3>
-      <!-- <meetup-agenda-item-form class="mb-3" />-->
+      <meetup-agenda-item-form
+        class="mb-3"
+        v-for="(agendaItem, inx) in meetupLocal.agenda"
+        :key="agendaItem.id"
+        :agendaItem="agendaItem"
+        @update:agendaItem="meetupLocal.agenda.splice(inx, 1, $event)"
+        @remove="meetupLocal.agenda.splice(inx, 1)"
+      />
 
       <div class="form-section_append">
-        <button type="button" data-test="addAgendaItem">
+        <button
+          type="button"
+          data-test="addAgendaItem"
+          @click="addedAgendaItemHandler"
+        >
           + Добавить этап программы
         </button>
       </div>
@@ -40,6 +60,7 @@
           class="button button_secondary button_block"
           type="button"
           data-test="cancel"
+          @click="$emit('cancel')"
         >
           Отмена
         </button>
@@ -48,7 +69,7 @@
           type="submit"
           data-test="submit"
         >
-          Submit
+          {{ submitText }}
         </button>
       </div>
     </div>
@@ -75,6 +96,58 @@ function buildAgendaItem() {
 
 export default {
   name: 'MeetupForm',
+
+  data() {
+    return {
+      meetupLocal: {},
+    };
+  },
+
+  props: {
+    meetup: {
+      required: true,
+      type: Object,
+    },
+    submitText: {
+      type: String,
+    },
+  },
+
+  watch: {
+    meetup: {
+      immediate: true,
+      handler(value) {
+        this.meetupLocal = deepClone(value);
+      },
+    },
+  },
+
+  methods: {
+    submit() {
+      this.$emit('submit', deepClone(this.meetupLocal));
+    },
+    addedAgendaItemHandler() {
+      if (this.meetupLocal.agenda.length) {
+        const lastElement = this.meetupLocal.agenda.slice(-1)[0];
+        this.meetupLocal.agenda.push({
+          ...buildAgendaItem(),
+          startsAt: lastElement.endsAt,
+        });
+      } else {
+        this.meetupLocal.agenda.push(buildAgendaItem());
+      }
+    },
+  },
+
+  computed: {
+    dateFormat() {
+      const year = this.meetupLocal.date.getFullYear();
+      const month = `${this.meetupLocal.date.getMonth() + 1}`.padStart(2, '0');
+      const day = `${this.meetupLocal.date.getDate()}`.padStart(2, '0');
+      const date = `${year}-${month}-${day}`;
+      return date;
+    },
+  },
 
   components: {
     ImageUploader,
